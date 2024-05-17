@@ -8,7 +8,7 @@ import (
 
 func RequestId() func(c *gin.Context) {
 	return func(c *gin.Context) {
-		id := helper.GenRequestID()
+		id := helper.XGetRequestID(c)
 		c.Set(helper.RequestIdKey, id)
 		ctx := context.WithValue(c.Request.Context(), helper.RequestIdKey, id)
 		c.Request = c.Request.WithContext(ctx)

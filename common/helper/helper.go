@@ -102,6 +102,14 @@ func IntMax(a int, b int) int {
 	}
 }
 
+func XGetRequestID(c *gin.Context) string {
+	requestId := c.GetHeader(XRequestIdKey)
+	if requestId == "" {
+		requestId = GenRequestID()
+	}
+	return GenRequestID()
+}
+
 func GenRequestID() string {
 	return GetTimeString() + random.GetRandomNumberString(8)
 }
