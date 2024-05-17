@@ -102,8 +102,8 @@ func IntMax(a int, b int) int {
 	}
 }
 
-func XGetRequestID(c *gin.Context) string {
-	requestId := c.GetHeader(XRequestIdKey)
+func GetRequestID(c *gin.Context) string {
+	requestId := c.GetHeader(RequestIdKey)
 	if requestId == "" {
 		requestId = GenRequestID()
 	}
