@@ -22,11 +22,7 @@ const (
 	dataPrefixLength = len(dataPrefix)
 )
 
-func XStreamHandler(c *gin.Context, resp *http.Response, meta *meta.Meta) (*model.ErrorWithStatusCode, string, *model.Usage) {
-	return StreamHandler(c, resp, meta.Mode)
-}
-
-func StreamHandler(c *gin.Context, resp *http.Response, relayMode int) (*model.ErrorWithStatusCode, string, *model.Usage) {
+func StreamHandler(c *gin.Context, resp *http.Response, meta *meta.Meta) (*model.ErrorWithStatusCode, string, *model.Usage) {
 	responseText := ""
 	scanner := bufio.NewScanner(resp.Body)
 	scanner.Split(func(data []byte, atEOF bool) (advance int, token []byte, err error) {
@@ -72,7 +68,7 @@ func StreamHandler(c *gin.Context, resp *http.Response, relayMode int) (*model.E
 				dataChan <- data
 				continue
 			}
-			switch relayMode {
+			switch meta.Mode {
 			case relaymode.ChatCompletions:
 				var streamResponse ChatCompletionsStreamResponse
 				err := json.Unmarshal([]byte(data[dataPrefixLength:]), &streamResponse)
