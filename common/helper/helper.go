@@ -107,7 +107,7 @@ func GetRequestID(c *gin.Context) string {
 	if requestId == "" {
 		requestId = GenRequestID()
 	}
-	return GenRequestID()
+	return requestId
 }
 
 func GenRequestID() string {
