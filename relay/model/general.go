@@ -4,6 +4,10 @@ type ResponseFormat struct {
 	Type string `json:"type,omitempty"`
 }
 
+type StreamOptions struct {
+	IncludeUsage bool `json:"include_usage,omitempty"`
+}
+
 type GeneralOpenAIRequest struct {
 	Messages         []Message       `json:"messages,omitempty"`
 	Model            string          `json:"model,omitempty"`
@@ -14,6 +18,7 @@ type GeneralOpenAIRequest struct {
 	ResponseFormat   *ResponseFormat `json:"response_format,omitempty"`
 	Seed             float64         `json:"seed,omitempty"`
 	Stream           bool            `json:"stream,omitempty"`
+	StreamOptions    *StreamOptions  `json:"stream_options,omitempty"`
 	Temperature      float64         `json:"temperature,omitempty"`
 	TopP             float64         `json:"top_p,omitempty"`
 	TopK             int             `json:"top_k,omitempty"`

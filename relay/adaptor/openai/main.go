@@ -8,6 +8,7 @@ import (
 	"github.com/songquanpeng/one-api/common"
 	"github.com/songquanpeng/one-api/common/conv"
 	"github.com/songquanpeng/one-api/common/logger"
+	"github.com/songquanpeng/one-api/relay/meta"
 	"github.com/songquanpeng/one-api/relay/model"
 	"github.com/songquanpeng/one-api/relay/relaymode"
 	"io"
@@ -20,6 +21,10 @@ const (
 	done             = "[DONE]"
 	dataPrefixLength = len(dataPrefix)
 )
+
+func XStreamHandler(c *gin.Context, resp *http.Response, meta *meta.Meta) (*model.ErrorWithStatusCode, string, *model.Usage) {
+	return StreamHandler(c, resp, meta.Mode)
+}
 
 func StreamHandler(c *gin.Context, resp *http.Response, relayMode int) (*model.ErrorWithStatusCode, string, *model.Usage) {
 	responseText := ""
@@ -40,6 +45,7 @@ func StreamHandler(c *gin.Context, resp *http.Response, relayMode int) (*model.E
 	stopChan := make(chan bool)
 	var usage *model.Usage
 	go func() {
+		var prevData string
 		for scanner.Scan() {
 			data := scanner.Text()
 			if len(data) < dataPrefixLength { // ignore blank line or wrong format
@@ -49,6 +55,20 @@ func StreamHandler(c *gin.Context, resp *http.Response, relayMode int) (*model.E
 				continue
 			}
 			if strings.HasPrefix(data[dataPrefixLength:], done) {
+				if usage == nil && prevData != "" {
+					usage = ResponseText2Usage(responseText, meta.ActualModelName, meta.PromptTokens)
+					var streamResponse ChatCompletionsStreamResponse
+					err := json.Unmarshal([]byte(prevData[dataPrefixLength:]), &streamResponse)
+					if err == nil {
+						streamResponse.Choices = []ChatCompletionsStreamResponseChoice{}
+						streamResponse.Usage = usage
+						dataByte, err2 := json.Marshal(streamResponse)
+						if err2 == nil {
+							dataChan <- dataPrefix + string(dataByte)
+						}
+					}
+				}
+				prevData = data
 				dataChan <- data
 				continue
 			}
@@ -63,8 +83,9 @@ func StreamHandler(c *gin.Context, resp *http.Response, relayMode int) (*model.E
 				}
 				if len(streamResponse.Choices) == 0 {
 					// but for empty choice, we should not pass it to client, this is for azure
-					continue // just ignore empty choice
+					// continue // just ignore empty choice
 				}
+				prevData = data
 				dataChan <- data
 				for _, choice := range streamResponse.Choices {
 					responseText += conv.AsString(choice.Delta.Content)
